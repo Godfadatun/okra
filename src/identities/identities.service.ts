@@ -1,19 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import {
-  confirmBVNDto,
-  confirmNUBANDto,
-  getAccountsFromBVNDto,
-} from './dto/create-identity.dto';
-import {
-  UpdateIdentityDto,
-  verifyCustomerDto,
-} from './dto/update-identity.dto';
+import { confirmBVNDto, confirmNUBANDto } from './dto/create-identity.dto';
+import { verifyCustomerDto } from './dto/update-identity.dto';
 import axios from 'axios';
 import { ENVIRONMENT, OKRA_URL } from 'src/config/env.config';
 import { UtilsService } from 'src/utils/utils.service';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User, UserDocument } from 'src/users/entities/user.entity';
 import { Identity, IdentityDocument } from './entities/identity.entity';
 import * as randomstring from 'randomstring';
 import {
@@ -206,11 +198,14 @@ export class IdentitiesService {
       if (!customer)
         throw new NotFoundException('This customer does not exists');
 
-      if (customer.identity)
+      if (customer.identity) {
         return this.utils.sendObjectResponse(
           'Identity successfully processed',
-          { createdIdentity: customer.identity },
+          {
+            createdIdentity: customer.identity,
+          },
         );
+      }
 
       const {
         Washlist: on_washlist,
@@ -298,7 +293,7 @@ export class IdentitiesService {
         .exec();
 
       return this.utils.sendObjectResponse('Identity successfully processed', {
-        createdIdentity: gottenIdentity
+        createdIdentity: gottenIdentity,
       });
     } catch (error) {
       console.log({ error });
