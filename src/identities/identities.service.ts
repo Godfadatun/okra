@@ -193,14 +193,31 @@ export class IdentitiesService {
 
       const customer = await this.customerModel
         .findOne({ code: id })
-        .select({ otherName: 1, code: 1 })
+        .select({
+          otherName: 1,
+          code: 1,
+          phone_number: 1,
+          email: 1,
+          firstName: 1,
+          lastName: 1,
+        })
         .exec();
       if (!customer)
         throw new NotFoundException('This customer does not exists');
 
       const {
         Washlist: on_washlist,
-        date_of_birth: dob,
+        DateOfBirth: dob,
+        FullName: fullname,
+        Enrollment_Date: enrollment_date,
+        Enrollment_Bank: enrollment_bank,
+        LGAOrigin: lga_origin,
+        LGAOfResidence: lga_residence,
+        FirstName: first_name,
+        MiddleName: middle_name,
+        LastName: last_name,
+        Phone,
+        Email,
         ...rest
       } = gottenIdentiy;
       const newIdentiy = this.utils.toSnakeCase(rest);
@@ -210,6 +227,16 @@ export class IdentitiesService {
         'this.utils.toSnakeCase(rest)': this.utils.toSnakeCase(rest),
       });
 
+      const phones = [];
+      const emails = [customer.email];
+      const aliases = [];
+      if (customer.phone_number) phones.push(customer.phone_number);
+      if (Phone) phones.push(Phone);
+      if (Email) emails.push(Email);
+      if (customer.otherName !== middle_name) aliases.push(customer.otherName);
+      if (customer.firstName !== first_name) aliases.push(customer.firstName);
+      if (customer.lastName !== last_name) aliases.push(customer.lastName);
+
       const createdIdentity = new this.identityModel({
         identity: `idt_${randomstring.generate({
           length: 6,
@@ -217,8 +244,15 @@ export class IdentitiesService {
           charset: 'alphanumeric',
         })}`,
         ...newIdentiy,
-        aliases: customer.otherName ? [customer.otherName.split(' ')] : [],
         customer: customer._id,
+        dob,
+        fullname,
+        enrollment_date,
+        enrollment_bank,
+        lga_origin,
+        lga_residence,
+        phones,
+        emails,
         enrollment: {
           bank: gottenIdentiy.Enrollment_Bank,
           registration_date: gottenIdentiy.RegistrationDate,
@@ -227,10 +261,12 @@ export class IdentitiesService {
       });
       await createdIdentity.save();
 
-      return this.utils.sendObjectResponse(
-        'Identity successfully processed',
-        createdIdentity,
-      );
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { _id, createdAt, updatedAt, ...response } = createdIdentity._doc;
+      return this.utils.sendObjectResponse('Identity successfully processed', {
+        ...response,
+        aliases,
+      });
     } catch (error) {
       console.log({ error });
       throw new NotFoundException(error.message, error.response);
