@@ -201,9 +201,7 @@ export class IdentitiesService {
       if (customer.identity) {
         return this.utils.sendObjectResponse(
           'Identity successfully processed',
-          {
-            createdIdentity: customer.identity,
-          },
+          customer.identity,
         );
       }
 
@@ -256,7 +254,7 @@ export class IdentitiesService {
           charset: 'alphanumeric',
         })}`,
         ...newIdentiy,
-        customer: customer._id,
+        customer: customer.code,
         dob,
         fullname,
         enrollment_date,
@@ -292,9 +290,10 @@ export class IdentitiesService {
         })
         .exec();
 
-      return this.utils.sendObjectResponse('Identity successfully processed', {
-        createdIdentity: gottenIdentity,
-      });
+      return this.utils.sendObjectResponse(
+        'Identity successfully processed',
+        gottenIdentity.identity,
+      );
     } catch (error) {
       console.log({ error });
       throw new NotFoundException(error.message, error.response);

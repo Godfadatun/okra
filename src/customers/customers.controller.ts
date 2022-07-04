@@ -23,18 +23,6 @@ import {
 export class CustomersController {
   constructor(private readonly customersService: CustomersService) {}
 
-  // @UseGuards(PrincipalGuard)
-  // @Post('process')
-  // @UsePipes(new ValidationPipe())
-  // verify(
-  //   @Param('id') id: string,
-  //   @Body() verify: verifyCustomerControllerDto,
-  //   @Request() req,
-  // ) {
-  //   const payload = { ...verify, user_id: req.user.userId };
-  //   return this.customersService.verifyCustomer(id, payload);
-  // }
-
   @UseGuards(PrincipalGuard)
   @Post()
   @UsePipes(new ValidationPipe())

@@ -80,10 +80,6 @@ export class CustomersService {
     );
   }
 
-  // async verifyCustomer(id: string, payload: verifyCustomerDto) {
-  //   return `This action returns all customers`;
-  // }
-
   findOne(id: number) {
     return `This action returns a #${id} customer`;
   }

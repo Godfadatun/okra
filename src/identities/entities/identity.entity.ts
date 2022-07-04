@@ -36,6 +36,9 @@ export class Identity {
   gender: string;
 
   @Prop()
+  customer: string;
+
+  @Prop()
   photo_id: string;
 
   @Prop()
