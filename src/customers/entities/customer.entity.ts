@@ -1,3 +1,4 @@
+import { Identity } from 'src/identities/entities/identity.entity';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import * as mongoose from 'mongoose';
@@ -40,6 +41,9 @@ export class Customer {
 
   @Prop()
   phone_number: string;
+
+  @Prop()
+  identity: Identity;
 
   @Prop([Account])
   accounts: Account[];

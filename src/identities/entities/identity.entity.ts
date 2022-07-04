@@ -11,8 +11,8 @@ export class Identity {
   @Prop()
   identity: string;
 
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' })
-  customer: Customer;
+  // @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' })
+  // customer: Customer;
 
   @Prop()
   first_name: string;
@@ -49,6 +49,9 @@ export class Identity {
 
   @Prop()
   emails: string[];
+
+  @Prop()
+  aliases: string[];
 
   @Prop()
   bvn: string;

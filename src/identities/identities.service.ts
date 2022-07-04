@@ -196,6 +196,7 @@ export class IdentitiesService {
         .select({
           otherName: 1,
           code: 1,
+          identity: 1,
           phone_number: 1,
           email: 1,
           firstName: 1,
@@ -204,6 +205,12 @@ export class IdentitiesService {
         .exec();
       if (!customer)
         throw new NotFoundException('This customer does not exists');
+
+      if (customer.identity)
+        return this.utils.sendObjectResponse(
+          'Identity successfully processed',
+          { createdIdentity: customer.identity },
+        );
 
       const {
         Washlist: on_washlist,
@@ -233,11 +240,21 @@ export class IdentitiesService {
       if (customer.phone_number) phones.push(customer.phone_number);
       if (Phone) phones.push(Phone);
       if (Email) emails.push(Email);
-      if (customer.otherName !== middle_name) aliases.push(customer.otherName);
-      if (customer.firstName !== first_name) aliases.push(customer.firstName);
-      if (customer.lastName !== last_name) aliases.push(customer.lastName);
 
-      const createdIdentity = new this.identityModel({
+      if (customer.otherName !== middle_name) {
+        const aliasExist = aliases.find((name) => name === customer.otherName);
+        if (!aliasExist) aliases.push(customer.otherName);
+      }
+      if (customer.firstName !== first_name) {
+        const aliasExist = aliases.find((name) => name === customer.firstName);
+        if (!aliasExist) aliases.push(customer.firstName);
+      }
+      if (customer.lastName !== last_name) {
+        const aliasExist = aliases.find((name) => name === customer.lastName);
+        if (!aliasExist) aliases.push(customer.lastName);
+      }
+
+      const updatingPayload = {
         identity: `idt_${randomstring.generate({
           length: 6,
           capitalization: 'lowercase',
@@ -253,27 +270,39 @@ export class IdentitiesService {
         lga_residence,
         phones,
         emails,
+        aliases,
         enrollment: {
           bank: gottenIdentiy.Enrollment_Bank,
           registration_date: gottenIdentiy.RegistrationDate,
         },
         on_washlist,
-      });
-      await createdIdentity.save();
+      };
+      const createdIdentity = await this.customerModel
+        .updateOne(
+          {
+            code: id,
+            'identity.bvn': { $ne: gottenIdentiy.Bvn },
+          },
+          { $set: { identity: updatingPayload } },
+        )
+        .exec();
+      console.log({ createdIdentity });
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { _id, createdAt, updatedAt, ...response } = createdIdentity._doc;
+      const gottenIdentity = await this.customerModel
+        .findOne({ code: id })
+        .select({
+          identity: 1,
+          code: 1,
+          _id: 0,
+        })
+        .exec();
+
       return this.utils.sendObjectResponse('Identity successfully processed', {
-        ...response,
-        aliases,
+        createdIdentity: gottenIdentity
       });
     } catch (error) {
       console.log({ error });
       throw new NotFoundException(error.message, error.response);
-      // throw new NotFoundException(
-      //   error.message || error.response.data.message,
-      //   error.errors || error.response.data.data,
-      // );
     }
   }
 }
